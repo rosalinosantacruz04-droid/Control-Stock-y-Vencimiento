@@ -1,0 +1,3480 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <title>Control de Vencimientos</title>
+
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+  <style>
+    :root {
+      --primary: #6c5ce7;
+      --primary-dark: #5546d8;
+      --primary-light: #eeeaff;
+      --accent: #00b894;
+      --danger: #ff4d67;
+      --warning: #f6a623;
+      --bg: #f5f6fb;
+      --card: #ffffff;
+      --text: #20253a;
+      --muted: #8991aa;
+      --border: #e8eaf2;
+      --shadow: 0 12px 35px rgba(45, 48, 80, .08);
+      --radius: 22px;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      padding-bottom: 92px;
+      min-height: 100vh;
+    }
+
+    button,
+    input {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    /* ================= HEADER ================= */
+
+    header {
+      background: linear-gradient(135deg, #6655e9 0%, #8d4de8 100%);
+      color: white;
+      padding: 24px 20px 28px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 8px 25px rgba(91, 70, 200, .18);
+    }
+
+    .header-inner {
+      max-width: 650px;
+      margin: auto;
+    }
+
+    .eyebrow {
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 1.6px;
+      opacity: .78;
+      margin-bottom: 5px;
+    }
+
+    header h1 {
+      font-size: 25px;
+      line-height: 1.15;
+      font-weight: 800;
+    }
+
+    .header-subtitle {
+      margin-top: 7px;
+      font-size: 14px;
+      opacity: .88;
+    }
+
+    /* ================= LOVE MESSAGE ================= */
+
+    #love-message {
+      display: none;
+      max-width: 650px;
+      margin: -8px auto 0;
+      position: relative;
+      z-index: 110;
+      padding: 0 16px;
+    }
+
+    .love-inner {
+      background: white;
+      color: #7659db;
+      border-radius: 0 0 18px 18px;
+      padding: 9px 15px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 700;
+      box-shadow: 0 7px 18px rgba(50,40,90,.08);
+      animation: loveAppear .5s ease;
+    }
+
+    @keyframes loveAppear {
+      from {
+        opacity: 0;
+        transform: translateY(-8px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ================= SYNC ================= */
+
+    .sync-bar {
+      background: white;
+      border-bottom: 1px solid var(--border);
+      padding: 8px 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 10px;
+      font-size: 12px;
+    }
+
+    .sync-status {
+      color: var(--muted);
+      font-weight: 600;
+    }
+
+    .sync-btn {
+      border: none;
+      background: var(--primary-light);
+      color: var(--primary);
+      border-radius: 10px;
+      padding: 7px 11px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    /* ================= CONTAINER ================= */
+
+    .container {
+      width: 100%;
+      max-width: 650px;
+      margin: 0 auto;
+      padding: 20px 16px;
+    }
+
+    .view {
+      display: none;
+    }
+
+    .view.active {
+      display: block;
+      animation: viewIn .25s ease;
+    }
+
+    @keyframes viewIn {
+      from {
+        opacity: 0;
+        transform: translateY(5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    /* ================= CARDS ================= */
+
+    .card {
+      background: var(--card);
+      border: 1px solid rgba(232,234,242,.8);
+      border-radius: var(--radius);
+      padding: 20px;
+      margin-bottom: 16px;
+      box-shadow: var(--shadow);
+    }
+
+    .hero-card {
+      text-align: center;
+      padding: 27px 20px 22px;
+    }
+
+    .camera-icon {
+      width: 66px;
+      height: 66px;
+      border-radius: 21px;
+      background: var(--primary-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 30px;
+      margin: 0 auto 15px;
+    }
+
+    .hero-card h2 {
+      font-size: 22px;
+      margin-bottom: 7px;
+    }
+
+    .hero-card p {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.5;
+      margin-bottom: 20px;
+    }
+
+    .card-title {
+      font-size: 17px;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    /* ================= CAMERA ================= */
+
+    #reader {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 18px;
+      background: #111;
+      margin: 14px 0;
+      display: none;
+      min-height: 180px;
+    }
+
+    #reader video {
+      width: 100% !important;
+      height: auto !important;
+      border-radius: 18px;
+      display: block;
+    }
+
+    #reader__dashboard {
+      padding: 8px !important;
+    }
+
+    #reader__dashboard_section_csr button {
+      border-radius: 10px !important;
+      border: none !important;
+      padding: 8px 12px !important;
+    }
+
+    .camera-status {
+      display: none;
+      background: var(--primary-light);
+      color: var(--primary-dark);
+      padding: 10px 13px;
+      border-radius: 12px;
+      margin-bottom: 12px;
+      font-size: 13px;
+      font-weight: 700;
+      text-align: center;
+    }
+
+    .scanner-controls {
+      display: flex;
+      gap: 10px;
+    }
+
+    .scanner-controls .btn {
+      flex: 1;
+    }
+
+    /* ================= BUTTONS ================= */
+
+    .btn {
+      border: none;
+      border-radius: 13px;
+      padding: 13px 16px;
+      min-height: 48px;
+      font-size: 14px;
+      font-weight: 750;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 7px;
+      transition: transform .12s ease, opacity .12s ease;
+    }
+
+    .btn:active {
+      transform: scale(.98);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--primary), #8057eb);
+      color: white;
+      box-shadow: 0 8px 18px rgba(108,92,231,.2);
+    }
+
+    .btn-danger {
+      background: var(--danger);
+      color: white;
+    }
+
+    .btn-success {
+      background: var(--accent);
+      color: white;
+    }
+
+    .btn-warning {
+      background: var(--warning);
+      color: white;
+    }
+
+    .btn-secondary {
+      background: #eef0f6;
+      color: var(--text);
+    }
+
+    /* ================= FORMS ================= */
+
+    .form-group {
+      margin-bottom: 15px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 12px;
+      font-weight: 800;
+      color: #68718a;
+    }
+
+    input,
+    select {
+      width: 100%;
+      border: 1px solid var(--border);
+      background: #fafbfe;
+      border-radius: 13px;
+      padding: 13px 14px;
+      color: var(--text);
+      outline: none;
+      font-size: 14px;
+      transition: border .2s, box-shadow .2s, background .2s;
+    }
+
+    input:focus,
+    select:focus {
+      border-color: var(--primary);
+      background: white;
+      box-shadow: 0 0 0 4px rgba(108,92,231,.08);
+    }
+
+    input:disabled {
+      background: #f2f3f7;
+      color: #8b92a5;
+    }
+
+    .row {
+      display: flex;
+      gap: 10px;
+    }
+
+    .row > * {
+      flex: 1;
+    }
+
+    .code-row {
+      display: flex;
+      gap: 8px;
+    }
+
+    .code-row input {
+      min-width: 0;
+    }
+
+    .code-row .btn {
+      width: auto;
+      min-width: 86px;
+    }
+
+    /* ================= RECOGNITION ================= */
+
+    .recognition-status {
+      border-radius: 14px;
+      padding: 12px 14px;
+      margin-bottom: 17px;
+      font-size: 13px;
+      font-weight: 800;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .status-known {
+      background: #e7faf3;
+      color: #07855f;
+      border: 1px solid #c5f1e2;
+    }
+
+    .status-new {
+      background: #f0edff;
+      color: #6650d8;
+      border: 1px solid #dfd9ff;
+    }
+
+    .edit-btn {
+      border: none;
+      background: rgba(255,255,255,.7);
+      color: inherit;
+      padding: 6px 9px;
+      border-radius: 8px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    /* ================= FILTERS ================= */
+
+    .filter-card {
+      padding: 9px;
+    }
+
+    .filter-row {
+      display: flex;
+      gap: 7px;
+    }
+
+    .filter-tab {
+      flex: 1;
+      border: none;
+      border-radius: 11px;
+      background: #f1f2f7;
+      color: var(--muted);
+      padding: 11px 5px;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .filter-tab.active {
+      background: var(--primary);
+      color: white;
+    }
+
+    /* ================= RECORD CARDS ================= */
+
+    .item-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      padding: 15px;
+      margin-bottom: 10px;
+      box-shadow: 0 5px 18px rgba(40,44,70,.045);
+    }
+
+    .item-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .item-details {
+      min-width: 0;
+      flex: 1;
+    }
+
+    .item-details h3 {
+      font-size: 15px;
+      margin-bottom: 6px;
+      line-height: 1.25;
+    }
+
+    .item-details p {
+      color: var(--muted);
+      font-size: 11px;
+      line-height: 1.55;
+    }
+
+    .item-action {
+      flex-shrink: 0;
+    }
+
+    .retire-btn {
+      border: none;
+      background: #fff0f2;
+      color: var(--danger);
+      border-radius: 10px;
+      padding: 8px 10px;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .badge {
+      display: inline-block;
+      margin-top: 8px;
+      padding: 6px 9px;
+      border-radius: 20px;
+      font-size: 10px;
+      font-weight: 850;
+    }
+
+    .badge-vencido {
+      background: #ffe4e8;
+      color: #c52d47;
+    }
+
+    .badge-avencer {
+      background: #fff1d8;
+      color: #a86500;
+    }
+
+    .badge-ok {
+      background: #dcf8ed;
+      color: #087e59;
+    }
+
+    /* ================= CATALOG ================= */
+
+    .catalog-intro {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.5;
+    }
+
+    .accordion {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      margin-bottom: 10px;
+      overflow: hidden;
+      box-shadow: 0 4px 15px rgba(40,44,70,.035);
+    }
+
+    .accordion-header {
+      padding: 14px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: white;
+      color: var(--text);
+      font-size: 13px;
+      font-weight: 800;
+      cursor: pointer;
+    }
+
+    .accordion-header span:last-child {
+      color: var(--muted);
+      transition: transform .2s;
+    }
+
+    .accordion.open .accordion-header span:last-child {
+      transform: rotate(180deg);
+    }
+
+    .accordion-content {
+      display: none;
+      border-top: 1px solid var(--border);
+      background: #fafbfe;
+    }
+
+    .accordion.open .accordion-content {
+      display: block;
+    }
+
+    .catalog-item {
+      padding: 12px 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .catalog-item:last-child {
+      border-bottom: none;
+    }
+
+    .catalog-item h4 {
+      font-size: 13px;
+      margin-bottom: 4px;
+    }
+
+    .catalog-item p {
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    /* ================= MODAL ================= */
+
+    .modal-backdrop {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(25,28,45,.58);
+      backdrop-filter: blur(4px);
+      z-index: 500;
+      align-items: center;
+      justify-content: center;
+      padding: 18px;
+    }
+
+    .modal-backdrop.open {
+      display: flex;
+    }
+
+    .modal {
+      width: 100%;
+      max-width: 410px;
+      background: white;
+      border-radius: 22px;
+      padding: 21px;
+      box-shadow: 0 20px 60px rgba(0,0,0,.2);
+      animation: modalIn .2s ease;
+    }
+
+    @keyframes modalIn {
+      from {
+        opacity: 0;
+        transform: scale(.97) translateY(8px);
+      }
+      to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+      }
+    }
+
+    .modal h3 {
+      font-size: 18px;
+      margin-bottom: 5px;
+    }
+
+    .modal-subtitle {
+      color: var(--muted);
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 12px;
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 8px;
+      font-size: 12px;
+      font-weight: 650;
+      cursor: pointer;
+    }
+
+    .radio-option input {
+      width: auto;
+    }
+
+    .modal-buttons {
+      display: flex;
+      gap: 8px;
+      margin-top: 16px;
+    }
+
+    .modal-buttons .btn {
+      flex: 1;
+    }
+
+    /* ================= EMPTY ================= */
+
+    .empty-state {
+      text-align: center;
+      padding: 45px 20px;
+      color: var(--muted);
+      font-size: 13px;
+    }
+
+    .empty-icon {
+      font-size: 32px;
+      margin-bottom: 10px;
+      opacity: .65;
+    }
+
+    /* ================= TOAST ================= */
+
+    #toast {
+      position: fixed;
+      z-index: 1000;
+      left: 50%;
+      bottom: 100px;
+      transform: translateX(-50%) translateY(15px);
+      background: #25283a;
+      color: white;
+      padding: 12px 17px;
+      border-radius: 13px;
+      font-size: 12px;
+      font-weight: 650;
+      box-shadow: 0 8px 25px rgba(0,0,0,.18);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s, transform .25s;
+      max-width: calc(100vw - 35px);
+      text-align: center;
+    }
+
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+
+    /* ================= NAV ================= */
+
+    nav {
+      position: fixed;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      height: 78px;
+      background: rgba(255,255,255,.96);
+      backdrop-filter: blur(12px);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      z-index: 300;
+      box-shadow: 0 -5px 25px rgba(40,44,70,.06);
+    }
+
+    .nav-item {
+      flex: 1;
+      border: none;
+      background: transparent;
+      color: #9aa2b8;
+      font-size: 10px;
+      font-weight: 650;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .nav-icon {
+      width: 35px;
+      height: 30px;
+      border-radius: 11px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 19px;
+    }
+
+    .nav-item.active {
+      color: var(--primary);
+      font-weight: 800;
+    }
+
+    .nav-item.active .nav-icon {
+      background: var(--primary-light);
+    }
+
+    /* ================= DESKTOP ================= */
+
+    @media (min-width: 700px) {
+      body {
+        padding-bottom: 30px;
+      }
+
+      nav {
+        left: 50%;
+        transform: translateX(-50%);
+        width: 650px;
+        bottom: 15px;
+        border-radius: 22px;
+        border: 1px solid var(--border);
+      }
+
+      .container {
+        padding-top: 28px;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ================= HEADER ================= -->
+
+  <header>
+    <div class="header-inner">
+      <div class="eyebrow">CONTROL INTELIGENTE</div>
+      <h1>Control de Vencimientos</h1>
+      <div class="header-subtitle">
+        Registrá, controlá y encontrá tus productos fácilmente
+      </div>
+    </div>
+  </header>
+
+  <!-- MENSAJE DECORATIVO OCASIONAL -->
+
+  <div id="love-message">
+    <div class="love-inner">
+      💜 Te amo amor mío
+    </div>
+  </div>
+
+  <!-- ================= SYNC ================= -->
+
+  <div class="sync-bar">
+    <span id="sync-status" class="sync-status">
+      🟡 Preparando aplicación...
+    </span>
+
+    <button class="sync-btn" onclick="triggerManualSync()">
+      ↻ Sincronizar
+    </button>
+  </div>
+
+  <main class="container">
+
+    <!-- ========================================================= -->
+    <!-- VISTA ESCANEAR -->
+    <!-- ========================================================= -->
+
+    <section id="view-scan" class="view active">
+
+      <div class="card hero-card">
+
+        <div class="camera-icon">📷</div>
+
+        <h2>Registrar producto</h2>
+
+        <p>
+          Escaneá el código de barras o ingresalo manualmente.
+        </p>
+
+        <div id="camera-status" class="camera-status">
+          📷 Solicitando acceso a la cámara...
+        </div>
+
+        <div id="reader"></div>
+
+        <div class="scanner-controls">
+
+          <button
+            id="btn-start-scanner"
+            class="btn btn-primary"
+            onclick="startScanner()">
+            📷 Abrir cámara
+          </button>
+
+          <button
+            id="btn-stop-scanner"
+            class="btn btn-danger"
+            onclick="stopScanner()"
+            style="display:none;">
+            ✕ Cerrar cámara
+          </button>
+
+        </div>
+
+        <div style="height:18px;"></div>
+
+        <div class="form-group">
+
+          <label for="reg-code">
+            CÓDIGO DE BARRAS
+          </label>
+
+          <div class="code-row">
+
+            <input
+              type="text"
+              id="reg-code"
+              placeholder="Ej. 7791234567890"
+              inputmode="numeric"
+              autocomplete="off">
+
+            <button
+              class="btn btn-secondary"
+              onclick="handleManualCodeInput()">
+              Buscar
+            </button>
+
+          </div>
+
+        </div>
+
+      </div>
+
+      <!-- FORMULARIO PRODUCTO -->
+
+      <div
+        class="card"
+        id="product-form-card"
+        style="display:none;">
+
+        <div
+          id="recognition-badge"
+          class="recognition-status status-new">
+
+          <span id="recognition-text">
+            NUEVO PRODUCTO
+          </span>
+
+          <button
+            id="btn-edit-catalog"
+            class="edit-btn"
+            onclick="enableCatalogEdit()"
+            style="display:none;">
+            Editar datos
+          </button>
+
+        </div>
+
+        <form
+          id="form-register-product"
+          onsubmit="handleFormSubmit(event)">
+
+          <div class="form-group">
+
+            <label for="reg-category">
+              CATEGORÍA
+            </label>
+
+            <input
+              type="text"
+              id="reg-category"
+              list="dl-categories"
+              placeholder="Ej. Alimentos"
+              required
+              disabled>
+
+            <datalist id="dl-categories"></datalist>
+
+          </div>
+
+          <div class="form-group">
+
+            <label for="reg-brand">
+              MARCA
+            </label>
+
+            <input
+              type="text"
+              id="reg-brand"
+              list="dl-brands"
+              placeholder="Ej. La Serenísima"
+              required
+              disabled>
+
+            <datalist id="dl-brands"></datalist>
+
+          </div>
+
+          <div class="form-group">
+
+            <label for="reg-name">
+              NOMBRE DEL PRODUCTO
+            </label>
+
+            <input
+              type="text"
+              id="reg-name"
+              placeholder="Ej. Leche Entera 1L"
+              required
+              disabled>
+
+          </div>
+
+          <div
+            id="box-save-catalog-btn"
+            style="display:none; margin-bottom:16px;">
+
+            <button
+              type="button"
+              class="btn btn-warning"
+              onclick="saveCurrentCatalogEdit()">
+
+              💾 Guardar en mi catálogo
+
+            </button>
+
+          </div>
+
+          <div
+            style="
+              border-top:1px dashed var(--border);
+              margin:18px 0;
+            ">
+          </div>
+
+          <div class="row">
+
+            <div class="form-group">
+
+              <label for="reg-qty">
+                CANTIDAD
+              </label>
+
+              <input
+                type="number"
+                id="reg-qty"
+                min="1"
+                value="1"
+                required>
+
+            </div>
+
+            <div class="form-group">
+
+              <label for="reg-exp-date">
+                VENCIMIENTO
+              </label>
+
+              <input
+                type="date"
+                id="reg-exp-date"
+                required>
+
+            </div>
+
+          </div>
+
+          <button
+            type="submit"
+            class="btn btn-success"
+            id="btn-save-record">
+
+            💾 Guardar producto
+
+          </button>
+
+        </form>
+
+      </div>
+
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- VISTA VENCIMIENTOS -->
+    <!-- ========================================================= -->
+
+    <section id="view-records" class="view">
+
+      <div class="card filter-card">
+
+        <div class="filter-row">
+
+          <button
+            class="filter-tab active"
+            id="tab-avencer"
+            onclick="setRecordFilter('avencer')">
+            A vencer
+          </button>
+
+          <button
+            class="filter-tab"
+            id="tab-vencidos"
+            onclick="setRecordFilter('vencidos')">
+            Vencidos
+          </button>
+
+          <button
+            class="filter-tab"
+            id="tab-todos"
+            onclick="setRecordFilter('todos')">
+            Todos
+          </button>
+
+        </div>
+
+      </div>
+
+      <div id="records-container"></div>
+
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- VISTA CATÁLOGO -->
+    <!-- ========================================================= -->
+
+    <section id="view-catalog" class="view">
+
+      <div class="card">
+
+        <div class="card-title">
+          📚 Mi catálogo
+        </div>
+
+        <p class="catalog-intro">
+          Los productos que registrás quedan asociados a su código
+          para reconocerlos automáticamente la próxima vez.
+        </p>
+
+        <div class="form-group" style="margin:14px 0 0;">
+          <label for="catalog-search">
+            BUSCAR POR CÓDIGO DE BARRAS
+          </label>
+          <div class="code-row">
+            <input
+              type="text"
+              id="catalog-search"
+              placeholder="Ej. 7791234567890"
+              inputmode="numeric"
+              autocomplete="off"
+              oninput="onCatalogSearch(this.value)">
+            <button
+              type="button"
+              class="btn btn-secondary"
+              onclick="clearCatalogSearch()">
+              ✕ Limpiar
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+      <div id="catalog-container"></div>
+
+    </section>
+
+
+    <!-- ========================================================= -->
+    <!-- VISTA HISTORIAL -->
+    <!-- ========================================================= -->
+
+    <section id="view-history" class="view">
+
+      <div class="card">
+
+        <div class="card-title">
+          📋 Historial
+        </div>
+
+        <p class="catalog-intro">
+          Acá aparecen los productos que fueron retirados.
+        </p>
+
+      </div>
+
+      <div id="history-container"></div>
+
+    </section>
+
+  </main>
+
+
+  <!-- ========================================================= -->
+  <!-- MODAL RETIRO -->
+  <!-- ========================================================= -->
+
+  <div
+    id="modal-retire"
+    class="modal-backdrop">
+
+    <div class="modal">
+
+      <h3>
+        ¿Qué hiciste con el producto?
+      </h3>
+
+      <p class="modal-subtitle">
+        Seleccioná una opción para guardar el motivo del retiro.
+      </p>
+
+      <label class="radio-option">
+
+        <input
+          type="radio"
+          name="retire-action"
+          value="Retirado para oferta/exhibición"
+          checked>
+
+        <span>
+          Retirado para oferta/exhibición
+        </span>
+
+      </label>
+
+      <label class="radio-option">
+
+        <input
+          type="radio"
+          name="retire-action"
+          value="Retirado para recambio">
+
+        <span>
+          Retirado para recambio
+        </span>
+
+      </label>
+<label class="radio-option">
+
+    <input
+        type="radio"
+        name="retire-action"
+        value="Vendido / agotado del stock">
+
+    <span>
+        Vendido / agotado del stock
+    </span>
+
+</label>
+      <div class="modal-buttons">
+
+        <button
+          class="btn btn-secondary"
+          onclick="closeRetireModal()">
+          Cancelar
+        </button>
+
+        <button
+          class="btn btn-danger"
+          onclick="confirmRetireProduct()">
+          Confirmar retiro
+        </button>
+
+      </div>
+
+    </div>
+
+  </div>
+
+
+  <!-- ========================================================= -->
+  <!-- NAVEGACIÓN -->
+  <!-- ========================================================= -->
+
+  <nav>
+
+    <button
+      class="nav-item active"
+      onclick="switchView('view-scan', this)">
+
+      <div class="nav-icon">▦</div>
+      <span>Escanear</span>
+
+    </button>
+
+    <button
+      class="nav-item"
+      onclick="switchView('view-records', this)">
+
+      <div class="nav-icon">▣</div>
+      <span>Vencimientos</span>
+
+    </button>
+
+    <button
+      class="nav-item"
+      onclick="switchView('view-catalog', this)">
+
+      <div class="nav-icon">▢</div>
+      <span>Catálogo</span>
+
+    </button>
+
+    <button
+      class="nav-item"
+      onclick="switchView('view-history', this)">
+
+      <div class="nav-icon">↶</div>
+      <span>Historial</span>
+
+    </button>
+
+  </nav>
+
+
+  <!-- TOAST -->
+
+  <div id="toast">
+    Mensaje
+  </div>
+
+
+<script>
+
+/* ================================================================
+   CONFIGURACIÓN
+   ================================================================ */
+
+/* Días de anticipación para la alerta "A vencer" */
+const ALERT_DAYS = 20;
+
+const BACKEND_URL =
+  "https://script.google.com/macros/s/AKfycbxmwTsAzAlz6zHRFjZTIBgEsWk9Vqo9_qp24iY974UjlBE5_TaztSPmjLomGwl_3vc/exec";
+
+
+/* ================================================================
+   ESTADO GLOBAL
+   ================================================================ */
+
+let localCatalog = [];
+let localRecords = [];
+
+let html5QrcodeScanner = null;
+
+let currentFilter = "avencer";
+
+let isCurrentCodeRecognized = false;
+
+let selectedRetireRecordId = null;
+
+
+/* ================================================================
+   INICIO
+   ================================================================ */
+
+window.addEventListener("DOMContentLoaded", function() {
+
+  loadCache();
+
+  showLoveMessageOccasionally();
+
+  syncWithBackend();
+
+});
+
+
+/* ================================================================
+   MENSAJE DECORATIVO
+   ================================================================ */
+
+function showLoveMessageOccasionally() {
+
+  // Aproximadamente 35% de las veces que se abre la app.
+  if (Math.random() > 0.35) {
+    return;
+  }
+
+  setTimeout(function() {
+
+    var box = document.getElementById("love-message");
+
+    box.style.display = "block";
+
+    setTimeout(function() {
+
+      box.style.opacity = "0";
+      box.style.transition = "opacity .5s";
+
+      setTimeout(function() {
+        box.style.display = "none";
+      }, 500);
+
+    }, 4500);
+
+  }, 700);
+}
+
+
+/* ================================================================
+   CACHE LOCAL
+   ================================================================ */
+
+function loadCache() {
+
+  try {
+
+    var catalog =
+      localStorage.getItem("app_catalog");
+
+    var records =
+      localStorage.getItem("app_records");
+
+    if (catalog) {
+      localCatalog = JSON.parse(catalog);
+    }
+
+    if (records) {
+      localRecords = JSON.parse(records);
+    }
+
+    populateDatalists();
+
+    renderCatalogView();
+
+    renderRecordsView();
+
+    renderHistoryView();
+
+  } catch (error) {
+
+    console.error(
+      "Error cargando caché:",
+      error
+    );
+
+  }
+
+}
+
+
+function saveCache() {
+
+  try {
+
+    localStorage.setItem(
+      "app_catalog",
+      JSON.stringify(localCatalog)
+    );
+
+    localStorage.setItem(
+      "app_records",
+      JSON.stringify(localRecords)
+    );
+
+  } catch (error) {
+
+    console.error(
+      "Error guardando caché:",
+      error
+    );
+
+  }
+
+}
+
+
+/* ================================================================
+   JSONP
+   ================================================================ */
+
+function callBackend(params) {
+
+  return new Promise(function(resolve, reject) {
+
+    var callbackName =
+      "backendCallback_" +
+      Date.now() +
+      "_" +
+      Math.floor(Math.random() * 100000);
+
+    params.callback = callbackName;
+
+    var query =
+      Object.keys(params)
+        .map(function(key) {
+
+          return (
+            encodeURIComponent(key) +
+            "=" +
+            encodeURIComponent(params[key])
+          );
+
+        })
+        .join("&");
+
+    var script =
+      document.createElement("script");
+
+    var finished = false;
+
+    function cleanup() {
+
+      try {
+        delete window[callbackName];
+      } catch (e) {
+        window[callbackName] = undefined;
+      }
+
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+
+    }
+
+    window[callbackName] = function(data) {
+
+      if (finished) return;
+
+      finished = true;
+
+      cleanup();
+
+      resolve(data);
+
+    };
+
+    script.onerror = function() {
+
+      if (finished) return;
+
+      finished = true;
+
+      cleanup();
+
+      reject(
+        new Error("No se pudo conectar con Google Apps Script.")
+      );
+
+    };
+
+    script.src =
+      BACKEND_URL +
+      "?" +
+      query;
+
+    document.body.appendChild(script);
+
+    setTimeout(function() {
+
+      if (finished) return;
+
+      finished = true;
+
+      cleanup();
+
+      reject(
+        new Error("Tiempo de espera agotado.")
+      );
+
+    }, 15000);
+
+  });
+
+}
+
+
+/* ================================================================
+   SINCRONIZACIÓN
+   ================================================================ */
+
+async function syncWithBackend() {
+
+  updateSyncStatus("🟡 Sincronizando...");
+
+  try {
+
+    var products =
+      await callBackend({
+        action: "getProducts"
+      });
+
+    var catalog =
+      await callBackend({
+        action: "getCatalog"
+      });
+
+    if (
+      products &&
+      products.status === "success" &&
+      Array.isArray(products.data)
+    ) {
+
+      localRecords = products.data;
+
+    }
+
+    if (
+      catalog &&
+      catalog.status === "success" &&
+      Array.isArray(catalog.data)
+    ) {
+
+      localCatalog = catalog.data;
+
+    }
+
+    saveCache();
+
+    populateDatalists();
+
+    renderCatalogView();
+
+    renderRecordsView();
+
+    renderHistoryView();
+
+    updateSyncStatus("🟢 Sincronizado");
+
+  } catch (error) {
+
+    console.error(error);
+
+    updateSyncStatus(
+      "🟠 Modo local"
+    );
+
+    showToast(
+      "No se pudo sincronizar. Los datos locales siguen disponibles."
+    );
+
+  }
+
+}
+
+
+function triggerManualSync() {
+
+  syncWithBackend();
+
+}
+
+
+function updateSyncStatus(message) {
+
+  document.getElementById(
+    "sync-status"
+  ).innerText = message;
+
+}
+
+
+/* ================================================================
+   NAVEGACIÓN
+   ================================================================ */
+
+function switchView(viewId, btn) {
+
+  document
+    .querySelectorAll(".view")
+    .forEach(function(view) {
+
+      view.classList.remove("active");
+
+    });
+
+  document
+    .querySelectorAll(".nav-item")
+    .forEach(function(button) {
+
+      button.classList.remove("active");
+
+    });
+
+  document
+    .getElementById(viewId)
+    .classList.add("active");
+
+  if (btn) {
+    btn.classList.add("active");
+  }
+
+  if (viewId !== "view-scan") {
+    stopScanner();
+  }
+
+}
+
+
+/* ================================================================
+   ESCÁNER
+   ================================================================ */
+
+function startScanner() {
+
+  var reader =
+    document.getElementById("reader");
+
+  var status =
+    document.getElementById("camera-status");
+
+  reader.style.display = "block";
+
+  status.style.display = "block";
+
+  status.innerText =
+    "📷 Solicitando acceso a la cámara...";
+
+  document.getElementById(
+    "btn-start-scanner"
+  ).style.display = "none";
+
+  document.getElementById(
+    "btn-stop-scanner"
+  ).style.display = "flex";
+
+  if (!html5QrcodeScanner) {
+
+    html5QrcodeScanner =
+      new Html5Qrcode("reader");
+
+  }
+
+  var config = {
+
+    fps: 10,
+
+    qrbox: {
+      width: 280,
+      height: 150
+    },
+
+    aspectRatio: 1.777778,
+
+    formatsToSupport: [
+
+      Html5QrcodeSupportedFormats.EAN_13,
+
+      Html5QrcodeSupportedFormats.EAN_8,
+
+      Html5QrcodeSupportedFormats.UPC_A,
+
+      Html5QrcodeSupportedFormats.UPC_E,
+
+      Html5QrcodeSupportedFormats.CODE_128,
+
+      Html5QrcodeSupportedFormats.CODE_39
+
+    ]
+
+  };
+
+  html5QrcodeScanner
+    .start(
+      {
+        facingMode: "environment"
+      },
+
+      config,
+
+      function(decodedText) {
+
+        onScanSuccess(decodedText);
+
+      },
+
+      function() {
+
+        // Ignoramos los errores de lectura
+        // que ocurren continuamente entre frames.
+
+      }
+    )
+
+    .then(function() {
+
+      status.innerText =
+        "🟢 Cámara activa. Apuntá al código de barras.";
+
+    })
+
+    .catch(function(error) {
+
+      console.error(
+        "Error cámara:",
+        error
+      );
+
+      status.innerText =
+        "❌ No se pudo acceder a la cámara.";
+
+      showToast(
+        "No se pudo acceder a la cámara."
+      );
+
+      stopScanner();
+
+    });
+
+}
+
+
+function stopScanner() {
+
+  var reader =
+    document.getElementById("reader");
+
+  var status =
+    document.getElementById("camera-status");
+
+  if (!html5QrcodeScanner) {
+
+    resetScannerUI();
+
+    return;
+
+  }
+
+  html5QrcodeScanner
+    .stop()
+
+    .then(function() {
+
+      html5QrcodeScanner.clear();
+
+      html5QrcodeScanner = null;
+
+      resetScannerUI();
+
+    })
+
+    .catch(function(error) {
+
+      console.warn(
+        "Error cerrando cámara:",
+        error
+      );
+
+      html5QrcodeScanner = null;
+
+      resetScannerUI();
+
+    });
+
+}
+
+
+function resetScannerUI() {
+
+  document.getElementById(
+    "reader"
+  ).style.display = "none";
+
+  document.getElementById(
+    "camera-status"
+  ).style.display = "none";
+
+  document.getElementById(
+    "btn-start-scanner"
+  ).style.display = "flex";
+
+  document.getElementById(
+    "btn-stop-scanner"
+  ).style.display = "none";
+
+}
+
+
+function onScanSuccess(code) {
+
+  if (!code) return;
+
+  stopScanner();
+
+  document.getElementById(
+    "reg-code"
+  ).value = code;
+
+  processScannedCode(code);
+
+}
+
+
+/* ================================================================
+   CÓDIGO MANUAL
+   ================================================================ */
+
+function handleManualCodeInput() {
+
+  var code =
+    document
+      .getElementById("reg-code")
+      .value
+      .trim();
+
+  if (!code) {
+
+    showToast(
+      "Ingresá un código de barras."
+    );
+
+    return;
+
+  }
+
+  processScannedCode(code);
+
+}
+
+
+/* ================================================================
+   PROCESAMIENTO PRODUCTO
+   ================================================================ */
+
+function processScannedCode(code) {
+
+  if (!code) return;
+
+  const formCard =
+    document.getElementById("product-form-card");
+
+  const badge =
+    document.getElementById("recognition-badge");
+
+  const text =
+    document.getElementById("recognition-text");
+
+  const editButton =
+    document.getElementById("btn-edit-catalog");
+
+  formCard.style.display = "block";
+
+  // Mostrar estado mientras consultamos Google Apps Script
+  badge.className =
+    "recognition-status status-new";
+
+  text.innerText =
+    "🔎 Buscando producto...";
+
+  editButton.style.display =
+    "none";
+
+  // Consultar catálogo de Google Apps Script
+  consultarAppsScript(
+    "getCatalog",
+    {},
+    function(respuesta) {
+
+      if (
+        !respuesta ||
+        respuesta.status !== "success" ||
+        !Array.isArray(respuesta.data)
+      ) {
+
+        console.error(
+          "Error al consultar catálogo:",
+          respuesta
+        );
+
+        showToast(
+          "No se pudo consultar el catálogo"
+        );
+
+        // Si falla la conexión,
+        // mantenemos el funcionamiento local
+        const localItem =
+          findCatalogItemByCode(code);
+
+        completarDatosProducto(localItem);
+
+        return;
+      }
+
+      // Buscar el código dentro del catálogo recibido
+      const item =
+        respuesta.data.find(function(producto) {
+
+          return String(producto.codigo).trim() ===
+                 String(code).trim();
+
+        });
+
+      // Actualizar también el catálogo local
+      if (Array.isArray(respuesta.data)) {
+        localCatalog = respuesta.data;
+        saveCache();
+        populateDatalists();
+        renderCatalogView();
+      }
+
+      completarDatosProducto(item);
+    }
+  );
+}
+
+
+// ============================================================
+// COMPLETAR DATOS DEL PRODUCTO
+// ============================================================
+
+function completarDatosProducto(item) {
+
+  const badge =
+    document.getElementById("recognition-badge");
+
+  const text =
+    document.getElementById("recognition-text");
+
+  const editButton =
+    document.getElementById("btn-edit-catalog");
+
+
+  if (item) {
+
+    // PRODUCTO RECONOCIDO
+    isCurrentCodeRecognized = true;
+
+    badge.className =
+      "recognition-status status-known";
+
+    text.innerText =
+      "✓ PRODUCTO RECONOCIDO";
+
+    editButton.style.display =
+      "block";
+
+
+    document.getElementById(
+      "reg-category"
+    ).value =
+      item.categoria || "";
+
+
+    document.getElementById(
+      "reg-brand"
+    ).value =
+      item.marca || "";
+
+
+    document.getElementById(
+      "reg-name"
+    ).value =
+      item.producto || "";
+
+
+    disableCatalogInputs();
+
+    showToast(
+      "Producto encontrado en el catálogo"
+    );
+
+
+  } else {
+
+    // PRODUCTO NUEVO
+    isCurrentCodeRecognized = false;
+
+    badge.className =
+      "recognition-status status-new";
+
+    text.innerText =
+      "＋ NUEVO PRODUCTO";
+
+    editButton.style.display =
+      "none";
+
+
+    document.getElementById(
+      "reg-category"
+    ).value = "";
+
+
+    document.getElementById(
+      "reg-brand"
+    ).value = "";
+
+
+    document.getElementById(
+      "reg-name"
+    ).value = "";
+
+
+    enableCatalogEdit();
+
+    showToast(
+      "Producto nuevo: completá sus datos"
+    );
+  }
+}
+
+
+function findCatalogItemByCode(code) {
+
+  return localCatalog.find(function(item) {
+
+    return (
+      String(item.codigo).trim() ===
+      String(code).trim()
+    );
+
+  });
+
+}
+
+
+/* ================================================================
+   CATÁLOGO
+   ================================================================ */
+
+function enableCatalogEdit() {
+
+  document.getElementById(
+    "reg-category"
+  ).disabled = false;
+
+  document.getElementById(
+    "reg-brand"
+  ).disabled = false;
+
+  document.getElementById(
+    "reg-name"
+  ).disabled = false;
+
+  document.getElementById(
+    "box-save-catalog-btn"
+  ).style.display = "block";
+
+}
+
+
+function disableCatalogInputs() {
+
+  document.getElementById(
+    "reg-category"
+  ).disabled = true;
+
+  document.getElementById(
+    "reg-brand"
+  ).disabled = true;
+
+  document.getElementById(
+    "reg-name"
+  ).disabled = true;
+
+  document.getElementById(
+    "box-save-catalog-btn"
+  ).style.display = "none";
+
+}
+
+
+async function saveCurrentCatalogEdit() {
+
+  var codigo =
+    document
+      .getElementById("reg-code")
+      .value
+      .trim();
+
+  var categoria =
+    document
+      .getElementById("reg-category")
+      .value
+      .trim();
+
+  var marca =
+    document
+      .getElementById("reg-brand")
+      .value
+      .trim();
+
+  var producto =
+    document
+      .getElementById("reg-name")
+      .value
+      .trim();
+
+  if (
+    !codigo ||
+    !categoria ||
+    !marca ||
+    !producto
+  ) {
+
+    showToast(
+      "Completá categoría, marca y nombre."
+    );
+
+    return;
+
+  }
+
+  await saveOrUpdateCatalogItem(
+    codigo,
+    categoria,
+    marca,
+    producto
+  );
+
+  disableCatalogInputs();
+
+  showToast(
+    "✓ Producto guardado en el catálogo."
+  );
+
+}
+
+
+async function saveOrUpdateCatalogItem(
+  codigo,
+  categoria,
+  marca,
+  producto
+) {
+
+  var existing =
+    findCatalogItemByCode(codigo);
+
+  var itemData = {
+
+    codigo: codigo,
+
+    categoria: categoria,
+
+    marca: marca,
+
+    producto: producto
+
+  };
+
+  if (existing && existing.idProducto) {
+
+    itemData.idProducto =
+      existing.idProducto;
+
+  }
+
+  var index =
+    localCatalog.findIndex(function(item) {
+
+      return (
+        String(item.codigo).trim() ===
+        String(codigo).trim()
+      );
+
+    });
+
+  if (index >= 0) {
+
+    if (existing.idProducto) {
+
+      itemData.idProducto =
+        existing.idProducto;
+
+    }
+
+    localCatalog[index] =
+      itemData;
+
+  } else {
+
+    localCatalog.push(itemData);
+
+  }
+
+  saveCache();
+
+  populateDatalists();
+
+  renderCatalogView();
+
+  try {
+
+    var response =
+      await callBackend({
+
+        action: "saveCatalog",
+
+        codigo: codigo,
+
+        categoria: categoria,
+
+        marca: marca,
+
+        producto: producto
+
+      });
+
+    if (
+      response &&
+      response.status === "success" &&
+      response.item
+    ) {
+
+      var saved =
+        response.item;
+
+      var savedIndex =
+        localCatalog.findIndex(function(item) {
+
+          return (
+            String(item.codigo).trim() ===
+            String(saved.codigo).trim()
+          );
+
+        });
+
+      if (savedIndex >= 0) {
+
+        localCatalog[savedIndex] =
+          saved;
+
+      }
+
+      saveCache();
+
+      renderCatalogView();
+
+    }
+
+  } catch (error) {
+
+    console.error(
+      "Error guardando catálogo:",
+      error
+    );
+
+    showToast(
+      "Guardado local. No se pudo sincronizar ahora."
+    );
+
+  }
+
+}
+
+
+/* ================================================================
+   GUARDAR VENCIMIENTO
+   ================================================================ */
+
+async function handleFormSubmit(event) {
+
+  event.preventDefault();
+
+  var codigo =
+    document
+      .getElementById("reg-code")
+      .value
+      .trim();
+
+  var categoria =
+    document
+      .getElementById("reg-category")
+      .value
+      .trim();
+
+  var marca =
+    document
+      .getElementById("reg-brand")
+      .value
+      .trim();
+
+  var producto =
+    document
+      .getElementById("reg-name")
+      .value
+      .trim();
+
+  var cantidad =
+    parseInt(
+      document
+        .getElementById("reg-qty")
+        .value,
+      10
+    );
+
+  var fechaVencimiento =
+    document
+      .getElementById("reg-exp-date")
+      .value;
+
+  if (
+    !codigo ||
+    !categoria ||
+    !marca ||
+    !producto ||
+    !cantidad ||
+    !fechaVencimiento
+  ) {
+
+    showToast(
+      "Completá todos los campos."
+    );
+
+    return;
+
+  }
+
+  var button =
+    document.getElementById(
+      "btn-save-record"
+    );
+
+  button.disabled = true;
+
+  button.innerText =
+    "Guardando...";
+
+  try {
+
+    await saveOrUpdateCatalogItem(
+      codigo,
+      categoria,
+      marca,
+      producto
+    );
+
+    var fechaHoy =
+      new Date()
+        .toISOString()
+        .split("T")[0];
+
+    var diffDays =
+      calculateDiffDays(
+        fechaVencimiento
+      );
+
+    var estado = "NORMAL";
+
+    if (diffDays <= 0) {
+
+      estado = "VENCIDO";
+
+    } else if (diffDays <= ALERT_DAYS) {
+
+      estado = "A_VENCER";
+
+    }
+
+    var recordData = {
+
+      id:
+        "REC-" +
+        Date.now(),
+
+      codigo: codigo,
+
+      nombre: producto,
+
+      cantidad: cantidad,
+
+      fechaVencimiento:
+        fechaVencimiento,
+
+      foto: "SIN_FOTO",
+
+      fechaRegistro:
+        fechaHoy,
+
+      estado: estado,
+
+      fechaRetiro: "",
+
+      accionRetiro: ""
+
+    };
+
+    localRecords.unshift(
+      recordData
+    );
+
+    saveCache();
+
+    renderRecordsView();
+
+    try {
+
+      var response =
+        await callBackend({
+
+          action: "saveRecord",
+
+          id: recordData.id,
+
+          codigo: recordData.codigo,
+
+          nombre: recordData.nombre,
+
+          cantidad: recordData.cantidad,
+
+          fechaVencimiento:
+            recordData.fechaVencimiento,
+
+          foto: recordData.foto,
+
+          fechaRegistro:
+            recordData.fechaRegistro,
+
+          estado: recordData.estado,
+
+          fechaRetiro:
+            recordData.fechaRetiro,
+
+          accionRetiro:
+            recordData.accionRetiro
+
+        });
+
+      if (
+        response &&
+        response.status === "success"
+      ) {
+
+        showToast(
+          "✓ Vencimiento guardado correctamente."
+        );
+
+      } else {
+
+        showToast(
+          "Guardado localmente."
+        );
+
+      }
+
+    } catch (error) {
+
+      console.error(error);
+
+      showToast(
+        "Guardado local. Se sincronizará después."
+      );
+
+    }
+
+    resetProductForm();
+
+  } finally {
+
+    button.disabled = false;
+
+    button.innerText =
+      "💾 Guardar producto";
+
+  }
+
+}
+
+
+function resetProductForm() {
+
+  document.getElementById(
+    "reg-code"
+  ).value = "";
+
+  document.getElementById(
+    "reg-category"
+  ).value = "";
+
+  document.getElementById(
+    "reg-brand"
+  ).value = "";
+
+  document.getElementById(
+    "reg-name"
+  ).value = "";
+
+  document.getElementById(
+    "reg-qty"
+  ).value = "1";
+
+  document.getElementById(
+    "reg-exp-date"
+  ).value = "";
+
+  document.getElementById(
+    "product-form-card"
+  ).style.display = "none";
+
+  disableCatalogInputs();
+
+}
+
+
+function calculateDiffDays(dateStr) {
+
+  if (!dateStr) return 0;
+
+  var today =
+    new Date();
+
+  today.setHours(
+    0, 0, 0, 0
+  );
+
+  var exp =
+    new Date(
+      dateStr + "T00:00:00"
+    );
+
+  return Math.ceil(
+    (
+      exp - today
+    ) /
+    (1000 * 60 * 60 * 24)
+  );
+
+}
+
+
+/* ================================================================
+   DATALISTS
+   ================================================================ */
+
+function populateDatalists() {
+
+  var categories =
+    [
+      ...new Set(
+        localCatalog
+          .map(function(item) {
+            return item.categoria;
+          })
+          .filter(Boolean)
+      )
+    ];
+
+  var brands =
+    [
+      ...new Set(
+        localCatalog
+          .map(function(item) {
+            return item.marca;
+          })
+          .filter(Boolean)
+      )
+    ];
+
+  document.getElementById(
+    "dl-categories"
+  ).innerHTML =
+    categories
+      .map(function(value) {
+
+        return (
+          "<option value=\"" +
+          escapeHtml(value) +
+          "\"></option>"
+        );
+
+      })
+      .join("");
+
+  document.getElementById(
+    "dl-brands"
+  ).innerHTML =
+    brands
+      .map(function(value) {
+
+        return (
+          "<option value=\"" +
+          escapeHtml(value) +
+          "\"></option>"
+        );
+
+      })
+      .join("");
+
+}
+
+
+/* ================================================================
+   CATÁLOGO VISUAL
+   ================================================================ */
+
+var catalogSearchTerm = "";
+
+function onCatalogSearch(value) {
+
+  catalogSearchTerm =
+    String(value || "")
+      .replace(/\s+/g, "")
+      .trim();
+
+  renderCatalogView();
+
+}
+
+function clearCatalogSearch() {
+
+  var input =
+    document.getElementById(
+      "catalog-search"
+    );
+
+  if (input) {
+    input.value = "";
+  }
+
+  catalogSearchTerm = "";
+
+  renderCatalogView();
+
+}
+
+function renderCatalogView() {
+
+  var container =
+    document.getElementById(
+      "catalog-container"
+    );
+
+  if (
+    !localCatalog ||
+    localCatalog.length === 0
+  ) {
+
+    container.innerHTML =
+      emptyState(
+        "📚",
+        "Tu catálogo todavía está vacío."
+      );
+
+    return;
+
+  }
+
+  var searching =
+    catalogSearchTerm !== "";
+
+  var source =
+    searching
+      ? localCatalog.filter(function(item) {
+
+          return String(item.codigo || "")
+            .replace(/\s+/g, "")
+            .indexOf(catalogSearchTerm) !== -1;
+
+        })
+      : localCatalog;
+
+  if (source.length === 0) {
+
+    container.innerHTML =
+      emptyState(
+        "🔎",
+        "No hay productos con ese código."
+      );
+
+    return;
+
+  }
+
+  var grouped = {};
+
+  source.forEach(function(item) {
+
+    var category =
+      item.categoria ||
+      "Sin categoría";
+
+    if (!grouped[category]) {
+      grouped[category] = [];
+    }
+
+    grouped[category].push(item);
+
+  });
+
+  var html = "";
+
+  Object.keys(grouped)
+    .sort()
+    .forEach(function(category) {
+
+      html +=
+        '<div class="accordion' +
+        (searching ? ' open' : '') +
+        '">' +
+
+        '<div class="accordion-header" ' +
+        'onclick="toggleAccordion(this)">' +
+
+        '<span>📂 ' +
+        escapeHtml(category) +
+        ' (' +
+        grouped[category].length +
+        ')</span>' +
+
+        '<span>▼</span>' +
+
+        '</div>' +
+
+        '<div class="accordion-content">';
+
+      grouped[category]
+        .forEach(function(item) {
+
+          html +=
+            '<div class="catalog-item">' +
+
+            '<h4>' +
+            escapeHtml(
+              item.producto ||
+              "Producto sin nombre"
+            ) +
+            '</h4>' +
+
+            '<p>' +
+            'Marca: ' +
+            escapeHtml(
+              item.marca || "—"
+            ) +
+
+            ' · Código: ' +
+
+            escapeHtml(
+              item.codigo || "—"
+            ) +
+
+            '</p>' +
+
+            '</div>';
+
+        });
+
+      html +=
+        '</div></div>';
+
+    });
+
+  container.innerHTML =
+    html;
+
+}
+
+
+function toggleAccordion(header) {
+
+  header
+    .parentElement
+    .classList
+    .toggle("open");
+
+}
+
+
+/* ================================================================
+   VENCIMIENTOS
+   ================================================================ */
+
+function setRecordFilter(filter) {
+
+  currentFilter =
+    filter;
+
+  document
+    .querySelectorAll(".filter-tab")
+    .forEach(function(button) {
+
+      button.classList.remove(
+        "active"
+      );
+
+    });
+
+  document
+    .getElementById(
+      "tab-" + filter
+    )
+    .classList.add("active");
+
+  renderRecordsView();
+
+}
+
+
+function renderRecordsView() {
+
+  var container =
+    document.getElementById(
+      "records-container"
+    );
+
+  if (
+    !localRecords ||
+    localRecords.length === 0
+  ) {
+
+    container.innerHTML =
+      emptyState(
+        "📅",
+        "No hay vencimientos registrados."
+      );
+
+    return;
+
+  }
+
+  var activeRecords =
+    localRecords.filter(function(record) {
+
+      return record.estado !== "RETIRADO";
+
+    });
+
+  var filtered =
+    activeRecords.filter(function(record) {
+
+      var days =
+        calculateDiffDays(
+          record.fechaVencimiento
+        );
+
+      if (
+        currentFilter === "vencidos"
+      ) {
+
+        return days <= 0;
+
+      }
+
+      if (
+        currentFilter === "avencer"
+      ) {
+
+        return (
+          days >= 1 &&
+          days <= ALERT_DAYS
+        );
+
+      }
+
+      return true;
+
+    });
+
+  if (filtered.length === 0) {
+
+    var message =
+      currentFilter === "avencer"
+        ? "No hay productos próximos a vencer."
+        : currentFilter === "vencidos"
+          ? "No hay productos vencidos."
+          : "No hay registros.";
+
+    container.innerHTML =
+      emptyState(
+        "✨",
+        message
+      );
+
+    return;
+
+  }
+
+  container.innerHTML =
+    filtered
+      .map(function(record) {
+
+        var days =
+          calculateDiffDays(
+            record.fechaVencimiento
+          );
+
+        var badgeClass =
+          "badge-ok";
+
+        var badgeText =
+          "Vence en " +
+          days +
+          " días";
+
+        if (days <= 0) {
+
+          badgeClass =
+            "badge-vencido";
+
+          badgeText =
+            days === 0
+              ? "VENCE HOY"
+              : "Vencido hace " +
+                Math.abs(days) +
+                " días";
+
+        } else if (days <= ALERT_DAYS) {
+
+          badgeClass =
+            "badge-avencer";
+
+          badgeText =
+            "Vence en " +
+            days +
+            " días";
+
+        }
+
+        var catalogItem =
+          findCatalogItemByCode(
+            record.codigo
+          );
+
+        var categoryBrand =
+          catalogItem
+            ? (
+              escapeHtml(
+                catalogItem.categoria ||
+                ""
+              ) +
+              " · " +
+              escapeHtml(
+                catalogItem.marca ||
+                ""
+              )
+            )
+            : (
+              "Código: " +
+              escapeHtml(
+                record.codigo ||
+                ""
+              )
+            );
+
+        return (
+
+          '<div class="item-card">' +
+
+          '<div class="item-top">' +
+
+          '<div class="item-details">' +
+
+          '<h3>' +
+          escapeHtml(
+            record.nombre ||
+            "Producto"
+          ) +
+          '</h3>' +
+
+'<p>' +
+'Código: ' +
+escapeHtml(
+    record.codigo || ""
+) +
+'</p>' +
+
+'<p>' +
+categoryBrand +
+'</p>' +
+
+          '<p>' +
+          'Cantidad: <strong>' +
+          escapeHtml(
+            record.cantidad
+          ) +
+          '</strong>' +
+
+          ' · Vencimiento: <strong>' +
+          escapeHtml(
+            record.fechaVencimiento
+          ) +
+          '</strong>' +
+
+          '</p>' +
+
+          '<span class="badge ' +
+          badgeClass +
+          '">' +
+          badgeText +
+          '</span>' +
+
+          '</div>' +
+
+          '<div class="item-action">' +
+
+          '<button ' +
+          'class="retire-btn" ' +
+          'onclick="openRetireModal(\'' +
+          escapeJs(record.id) +
+          '\')">' +
+
+          'Retirar' +
+
+          '</button>' +
+
+          '</div>' +
+
+          '</div>' +
+
+          '</div>'
+
+        );
+
+      })
+      .join("");
+
+}
+
+
+/* ================================================================
+   RETIRO
+   ================================================================ */
+
+function openRetireModal(id) {
+
+  selectedRetireRecordId =
+    id;
+
+  document
+    .getElementById(
+      "modal-retire"
+    )
+    .classList
+    .add("open");
+
+}
+
+
+function closeRetireModal() {
+
+  selectedRetireRecordId =
+    null;
+
+  document
+    .getElementById(
+      "modal-retire"
+    )
+    .classList
+    .remove("open");
+
+}
+
+
+async function confirmRetireProduct() {
+
+  if (!selectedRetireRecordId) {
+    return;
+  }
+
+  var selected =
+    document.querySelector(
+      'input[name="retire-action"]:checked'
+    );
+
+  if (!selected) {
+    return;
+  }
+
+  var action =
+    selected.value;
+
+  var index =
+    localRecords.findIndex(
+      function(record) {
+
+        return (
+          String(record.id) ===
+          String(
+            selectedRetireRecordId
+          )
+        );
+
+      }
+    );
+
+  if (index < 0) {
+
+    closeRetireModal();
+
+    return;
+
+  }
+
+  var record =
+    localRecords[index];
+
+  record.estado =
+    "RETIRADO";
+
+  record.fechaRetiro =
+    new Date()
+      .toISOString()
+      .split("T")[0];
+
+  record.accionRetiro =
+    action;
+
+  saveCache();
+
+  renderRecordsView();
+
+  renderHistoryView();
+
+  closeRetireModal();
+
+  showToast(
+    "Producto retirado."
+  );
+
+  try {
+
+    await callBackend({
+
+      action: "saveRecord",
+
+      id: record.id,
+
+      codigo: record.codigo,
+
+      nombre: record.nombre,
+
+      cantidad: record.cantidad,
+
+      fechaVencimiento:
+        record.fechaVencimiento,
+
+      foto:
+        record.foto || "SIN_FOTO",
+
+      fechaRegistro:
+        record.fechaRegistro,
+
+      estado:
+        record.estado,
+
+      fechaRetiro:
+        record.fechaRetiro,
+
+      accionRetiro:
+        record.accionRetiro
+
+    });
+
+  } catch (error) {
+
+    console.error(error);
+
+    showToast(
+      "Retiro guardado localmente."
+    );
+
+  }
+
+}
+
+
+/* ================================================================
+   HISTORIAL
+   ================================================================ */
+
+function renderHistoryView() {
+
+  var container =
+    document.getElementById(
+      "history-container"
+    );
+
+  var historyRecords =
+    localRecords.filter(
+      function(record) {
+
+        return (
+          record.estado ===
+          "RETIRADO"
+        );
+
+      }
+    );
+
+  if (
+    historyRecords.length === 0
+  ) {
+
+    container.innerHTML =
+      emptyState(
+        "📋",
+        "Todavía no hay productos retirados."
+      );
+
+    return;
+
+  }
+
+  container.innerHTML =
+    historyRecords
+      .map(function(item) {
+
+        var catalogItem =
+          findCatalogItemByCode(
+            item.codigo
+          );
+
+        var info =
+          catalogItem
+            ? (
+              "Categoría: " +
+              escapeHtml(
+                catalogItem.categoria
+              ) +
+              " · " +
+              escapeHtml(
+                catalogItem.marca
+              )
+            )
+            : (
+              "Código: " +
+              escapeHtml(
+                item.codigo
+              )
+            );
+
+        return (
+
+          '<div class="item-card">' +
+
+          '<div class="item-details">' +
+
+          '<h3>' +
+          escapeHtml(
+            item.nombre
+          ) +
+          '</h3>' +
+
+          '<p>' +
+          info +
+          '</p>' +
+
+          '<p>' +
+          'Cantidad: ' +
+          escapeHtml(
+            item.cantidad
+          ) +
+
+          ' · Retirado: ' +
+          escapeHtml(
+            item.fechaRetiro ||
+            "S/D"
+          ) +
+
+          '</p>' +
+
+          '<p style="' +
+          'color:var(--primary);' +
+          'font-weight:700;' +
+          'margin-top:5px;">' +
+
+          'Motivo: ' +
+
+          escapeHtml(
+            item.accionRetiro ||
+            "S/D"
+          ) +
+
+          '</p>' +
+
+          '</div>' +
+
+          '</div>'
+
+        );
+
+      })
+      .join("");
+
+}
+
+
+/* ================================================================
+   UTILIDADES
+   ================================================================ */
+
+function emptyState(icon, message) {
+
+  return (
+
+    '<div class="empty-state">' +
+
+    '<div class="empty-icon">' +
+    icon +
+    '</div>' +
+
+    '<div>' +
+    escapeHtml(message) +
+    '</div>' +
+
+    '</div>'
+
+  );
+
+}
+
+
+function escapeHtml(value) {
+
+  return String(
+    value == null
+      ? ""
+      : value
+  )
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+
+}
+
+
+function escapeJs(value) {
+
+  return String(
+    value == null
+      ? ""
+      : value
+  )
+    .replace(/\\/g, "\\\\")
+    .replace(/'/g, "\\'")
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, "\\n")
+    .replace(/\r/g, "\\r");
+
+}
+
+
+function showToast(message) {
+
+  var toast =
+    document.getElementById(
+      "toast"
+    );
+
+  toast.innerText =
+    message;
+
+  toast.classList.add(
+    "show"
+  );
+
+  clearTimeout(
+    window.toastTimer
+  );
+
+  window.toastTimer =
+    setTimeout(function() {
+
+      toast.classList.remove(
+        "show"
+      );
+
+    }, 3000);
+
+}
+
+
+/* ================================================================
+   CERRAR MODAL TOCANDO AFUERA
+   ================================================================ */
+
+document
+  .getElementById("modal-retire")
+  .addEventListener(
+    "click",
+    function(event) {
+
+      if (
+        event.target === this
+      ) {
+
+        closeRetireModal();
+
+      }
+
+    }
+  );
+
+// ============================================================
+// CONEXIÓN CON GOOGLE APPS SCRIPT
+// ============================================================
+
+const APPS_SCRIPT_URL =
+  "https://script.google.com/macros/s/AKfycbxmwTsAzAlz6zHRFjZTIBgEsWk9Vqo9_qp24iY974UjlBE5_TaztSPmjLomGwl_3vc/exec";
+
+let appsScriptRequestId = 0;
+
+function consultarAppsScript(action, parametros, callback) {
+  const callbackName = "appsScriptCallback_" + (++appsScriptRequestId);
+
+  window[callbackName] = function(respuesta) {
+    try {
+      callback(respuesta);
+    } finally {
+      delete window[callbackName];
+      if (script.parentNode) {
+        script.parentNode.removeChild(script);
+      }
+    }
+  };
+
+  const script = document.createElement("script");
+
+  const params = new URLSearchParams({
+    action: action,
+    callback: callbackName,
+    ...(parametros || {})
+  });
+
+  script.src = APPS_SCRIPT_URL + "?" + params.toString();
+
+  script.onerror = function() {
+    callback({
+      status: "error",
+      message: "No se pudo conectar con Google Apps Script."
+    });
+
+    delete window[callbackName];
+
+    if (script.parentNode) {
+      script.parentNode.removeChild(script);
+    }
+  };
+
+  document.body.appendChild(script);
+}
+</script>
+
+</body>
+</html>
