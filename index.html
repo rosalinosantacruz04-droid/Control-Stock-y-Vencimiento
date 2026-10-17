@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Control de Vencimientos — Mi versión</title>
+<script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<style>
+:root{--primary:#6c5ce7;--primary-dark:#5546d8;--accent:#00a884;--danger:#e74761;--warning:#f2a51a;--bg:#f5f6fb;--card:#fff;--text:#20253a;--muted:#7d859c;--border:#e6e8f0;--shadow:0 8px 24px rgba(40,44,70,.07)}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Arial,sans-serif;padding-bottom:88px}
+header{background:linear-gradient(135deg,#6655e9,#8d4de8);color:#fff;padding:22px 18px;position:sticky;top:0;z-index:5;box-shadow:var(--shadow)}
+header,.container{max-width:760px;margin:auto}header{max-width:none}header .inner{max-width:760px;margin:auto}header small{opacity:.8;font-weight:800;letter-spacing:1px}h1{font-size:24px;margin:4px 0}header p{margin:5px 0 0;font-size:13px;opacity:.9}
+.container{padding:16px}.card{background:var(--card);border:1px solid var(--border);border-radius:18px;padding:17px;margin-bottom:14px;box-shadow:var(--shadow)}
+h2{font-size:18px;margin:0 0 12px}h3{font-size:15px;margin:0 0 7px}.muted{color:var(--muted);font-size:12px;line-height:1.5}
+label{display:block;font-size:11px;font-weight:800;letter-spacing:.3px;color:#68718a;margin:0 0 6px}
+input,select{width:100%;border:1px solid var(--border);border-radius:11px;padding:12px;background:#fafbfe;color:var(--text);font:inherit;font-size:14px;min-width:0}
+input:focus,select:focus{outline:2px solid #d9d3ff;border-color:var(--primary)}
+.form-group{margin-bottom:13px}.grid2{display:grid;grid-template-columns:1fr 1fr;gap:11px}.row{display:flex;gap:8px}.row>*{min-width:0}.row input{flex:1}
+.btn{border:0;border-radius:11px;padding:12px 14px;min-height:44px;font-weight:800;font-size:13px;cursor:pointer}.primary{background:var(--primary);color:white}.secondary{background:#eef0f7;color:var(--text)}.success{background:var(--accent);color:white}.danger{background:var(--danger);color:white}.warning{background:var(--warning);color:white}.full{width:100%}
+nav{position:fixed;bottom:0;left:0;right:0;background:#fff;border-top:1px solid var(--border);display:flex;justify-content:center;z-index:10;padding:6px max(3px,env(safe-area-inset-left)) calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;max-width:155px;border:0;background:transparent;color:#858ca2;font-size:10px;font-weight:750;padding:7px 2px;border-radius:10px}
+nav button span{display:block;font-size:20px;margin-bottom:3px}nav button.active{background:#eeeaff;color:var(--primary)}
+.view{display:none}.view.active{display:block}.item{background:#fff;border:1px solid var(--border);border-radius:14px;padding:13px;margin-bottom:10px;box-shadow:0 4px 12px #25283a08}
+.item-head{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.item p{font-size:12px;color:var(--muted);margin:4px 0;overflow-wrap:anywhere}.badge{display:inline-block;border-radius:20px;padding:5px 9px;font-size:10px;font-weight:850;margin-top:7px}.red{background:#ffe4e8;color:#c52d47}.yellow{background:#fff1d8;color:#986000}.green{background:#dcf8ed;color:#087e59}.purple{background:#eeeaff;color:#5e4acb}
+.empty{text-align:center;padding:28px 12px;color:var(--muted);font-size:13px}.pill{font-size:11px;background:#eeeaff;color:#5e4acb;border-radius:99px;padding:5px 9px;font-weight:800}
+.tabs{display:flex;gap:6px}.tabs button{flex:1;border:0;background:#f0f1f7;color:#777f96;padding:10px 3px;border-radius:10px;font-size:11px;font-weight:800}.tabs button.active{background:var(--primary);color:#fff}
+#reader{display:none;margin:10px 0;overflow:hidden;border-radius:12px}#reader video{width:100%!important}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:10px}.actions .btn{padding:8px 10px;min-height:34px;font-size:11px}
+.catalog-group{border:1px solid var(--border);border-radius:12px;margin:8px 0;overflow:hidden}.catalog-group summary{padding:12px;background:#fafbfe;font-weight:800;font-size:13px;cursor:pointer}.catalog-row{padding:11px 13px;border-top:1px solid var(--border)}.catalog-row p{margin:3px 0;color:var(--muted);font-size:11px}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#25283a;color:#fff;border-radius:12px;padding:11px 15px;font-size:12px;display:none;z-index:20;max-width:90%;text-align:center}
+@media(max-width:520px){.grid2{grid-template-columns:1fr 1fr}.container{padding:12px}.card{padding:14px}.item-head{gap:6px}}
+</style>
+</head>
+<body>
+<header><div class="inner"><small>CONTROL INTELIGENTE · VERSIÓN PERSONAL</small><h1>Control de Vencimientos</h1><p>Registrá, buscá y controlá tus productos fácilmente</p></div></header>
+<main class="container">
+<section id="view-scan" class="view active">
+  <div class="card">
+    <h2>📷 Registrar producto</h2>
+    <p class="muted">Escaneá el código con la cámara o escribilo manualmente. Si el artículo ya existe, se completarán sus datos.</p>
+    <div class="row"><button class="btn primary" onclick="startScanner()">📷 Abrir cámara</button><button class="btn secondary" onclick="stopScanner()">Cerrar cámara</button></div>
+    <div id="reader"></div>
+    <div class="form-group" style="margin-top:14px"><label for="barcode">CÓDIGO DE BARRAS</label><div class="row"><input id="barcode" inputmode="numeric" autocomplete="off" placeholder="Escaneá o escribí el código"><button class="btn secondary" onclick="lookupBarcode()">Buscar</button></div></div>
+    <div id="lookup-status" class="muted"></div>
+  </div>
+  <div class="card">
+    <h2>🧾 Datos del producto y vencimiento</h2>
+    <form id="product-form">
+      <div class="form-group"><label for="category">CATEGORÍA</label><input id="category" list="categories" placeholder="Ej. Alimentos" required><datalist id="categories"></datalist></div>
+      <div class="grid2">
+        <div class="form-group"><label for="brand">MARCA</label><input id="brand" list="brands" placeholder="Marca" required><datalist id="brands"></datalist></div>
+        <div class="form-group"><label for="product">NOMBRE DEL PRODUCTO</label><input id="product" placeholder="Nombre" required></div>
+      </div>
+      <div class="grid2">
+        <div class="form-group"><label for="quantity">CANTIDAD</label><input id="quantity" type="number" min="1" step="1" value="1" required></div>
+        <div class="form-group"><label for="expiry">FECHA DE VENCIMIENTO</label><input id="expiry" type="date" required></div>
+      </div>
+      <button class="btn success full" type="submit">💾 Guardar vencimiento</button>
+      <button class="btn secondary full" style="margin-top:8px" type="button" onclick="clearForm()">Limpiar formulario</button>
+    </form>
+  </div>
+</section>
+<section id="view-records" class="view">
+  <div class="card"><h2>🔎 Buscar artículo</h2><p class="muted">Buscá por código de barras, nombre, marca o categoría. Podés usar un lector que escriba el código y presione Enter.</p>
+    <div class="row"><input id="search" placeholder="Código de barras o nombre" autocomplete="off"><button class="btn primary" onclick="renderRecords()">Buscar</button></div>
+  </div>
+  <div class="card"><div class="tabs">
+    <button id="tab-avencer" class="active" onclick="setFilter('avencer')">Próximos 20 días</button>
+    <button id="tab-vencidos" onclick="setFilter('vencidos')">Vencidos</button>
+    <button id="tab-todos" onclick="setFilter('todos')">Todos</button>
+  </div></div>
+  <div id="records-container"></div>
+</section>
+<section id="view-catalog" class="view">
+  <div class="card"><h2>📚 Catálogo de artículos</h2><p class="muted">Los artículos se incorporan al catálogo al guardar su primer vencimiento. El mismo código puede tener varios vencimientos o lotes.</p><div class="form-group"><label for="catalog-search">BUSCAR EN CATÁLOGO</label><input id="catalog-search" placeholder="Código, producto, marca o categoría" oninput="renderCatalog()"></div><div id="catalog-container"></div></div>
+</section>
+<section id="view-history" class="view">
+  <div class="card"><h2>📋 Historial de retiros</h2><p class="muted">Registro de productos retirados del control activo.</p><div id="history-container"></div></div>
+</section>
+<section id="view-backup" class="view">
+  <div class="card"><h2>💾 Respaldo de datos</h2><p class="muted">Los datos de esta versión se guardan en el navegador de este dispositivo. Exportá una copia regularmente para no perderlos si cambiás de teléfono o navegador.</p>
+    <button class="btn primary full" onclick="exportData()">⬇️ Exportar respaldo JSON</button>
+    <div class="form-group" style="margin-top:15px"><label for="import-file">IMPORTAR RESPALDO JSON</label><input id="import-file" type="file" accept=".json,application/json"></div>
+    <button class="btn secondary full" onclick="importData()">⬆️ Importar respaldo</button>
+    <p class="muted" style="margin-top:12px">Importar reemplazará los datos guardados en esta versión. Exportá primero una copia si querés conservarlos.</p>
+  </div>
+  <div class="card"><h2>ℹ️ Acerca de esta versión</h2><p class="muted">Versión personal independiente. No requiere acceso a la cuenta anterior. No sincroniza automáticamente con la base de datos anterior ni con otros dispositivos.</p><div id="stats" class="muted"></div></div>
+</section>
+</main>
+<nav>
+<button class="active" data-view="scan" onclick="showView('scan',this)"><span>📷</span>Registrar</button>
+<button data-view="records" onclick="showView('records',this)"><span>📅</span>Vencimientos</button>
+<button data-view="catalog" onclick="showView('catalog',this)"><span>📚</span>Catálogo</button>
+<button data-view="history" onclick="showView('history',this)"><span>📋</span>Historial</button>
+<button data-view="backup" onclick="showView('backup',this)"><span>💾</span>Respaldo</button>
+</nav>
+<div id="toast" class="toast"></div>
+<script>
+const STORAGE_KEY = "controlVencimientosPersonalV2";
+let records = [], catalog = [], history = [], filter = "avencer", scanner = null;
+function loadData(){try{const d=JSON.parse(localStorage.getItem(STORAGE_KEY)||"{}");records=Array.isArray(d.records)?d.records:[];catalog=Array.isArray(d.catalog)?d.catalog:[];history=Array.isArray(d.history)?d.history:[]}catch(e){records=[];catalog=[];history=[]}}
+function saveData(){localStorage.setItem(STORAGE_KEY,JSON.stringify({records,catalog,history,updatedAt:new Date().toISOString()}));updateLists()}
+function toast(s){const t=document.getElementById("toast");t.textContent=s;t.style.display="block";clearTimeout(window.toastTimer);window.toastTimer=setTimeout(()=>t.style.display="none",2800)}
+function esc(v){return String(v==null?"":v).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
+function todayISO(){const d=new Date();d.setMinutes(d.getMinutes()-d.getTimezoneOffset());return d.toISOString().slice(0,10)}
+function daysLeft(date){if(!date)return 0;const a=new Date(todayISO()+"T00:00:00"),b=new Date(date+"T00:00:00");return Math.round((b-a)/86400000)}
+function updateLists(){const cats=[...new Set(catalog.map(x=>x.category).filter(Boolean))].sort();const brands=[...new Set(catalog.map(x=>x.brand).filter(Boolean))].sort();document.getElementById("categories").innerHTML=cats.map(x=>`<option value="${esc(x)}">`).join("");document.getElementById("brands").innerHTML=brands.map(x=>`<option value="${esc(x)}">`).join("")}
+function showView(name,button){document.querySelectorAll(".view").forEach(x=>x.classList.remove("active"));document.getElementById("view-"+name).classList.add("active");document.querySelectorAll("nav button").forEach(x=>x.classList.toggle("active",x===button));if(name==="records")renderRecords();if(name==="catalog")renderCatalog();if(name==="history")renderHistory();if(name==="backup")updateStats()}
+function findProduct(code){return catalog.find(x=>String(x.code)===String(code))}
+function lookupBarcode(){const code=document.getElementById("barcode").value.trim();if(!code){toast("Ingresá o escaneá un código de barras.");return}const p=findProduct(code);document.getElementById("lookup-status").textContent=p?`Producto encontrado: ${p.product} · ${p.brand||"Sin marca"}. Completamos los datos.`:"Código nuevo. Completá categoría, marca y nombre.";if(p){document.getElementById("category").value=p.category||"";document.getElementById("brand").value=p.brand||"";document.getElementById("product").value=p.product||"";const active=records.filter(r=>r.code===code&&r.status!=="RETIRADO");if(active.length)toast(`Encontrado. Tiene ${active.length} vencimiento(s) registrado(s).`);else toast("Producto encontrado en el catálogo.")}else toast("Código no registrado: completá los datos del producto.")}
+document.getElementById("barcode").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();lookupBarcode()}});
+document.getElementById("search").addEventListener("keydown",e=>{if(e.key==="Enter"){e.preventDefault();renderRecords()}});
+async function startScanner(){if(!window.Html5Qrcode){toast("No se pudo cargar el lector. Verificá tu conexión.");return}try{document.getElementById("reader").style.display="block";if(!scanner)scanner=new Html5Qrcode("reader");await scanner.start({facingMode:"environment"},{fps:10,qrbox:{width:250,height:140}},code=>{document.getElementById("barcode").value=code;stopScanner();lookupBarcode()},()=>{});}catch(e){toast("No se pudo abrir la cámara. Revisá los permisos del navegador.");document.getElementById("reader").style.display="none"}}
+async function stopScanner(){if(scanner){try{if(scanner.isScanning)await scanner.stop()}catch(e){}document.getElementById("reader").style.display="none"}}
+function clearForm(){document.getElementById("product-form").reset();document.getElementById("barcode").value="";document.getElementById("quantity").value="1";document.getElementById("lookup-status").textContent=""}
+document.getElementById("product-form").addEventListener("submit",e=>{e.preventDefault();const code=document.getElementById("barcode").value.trim(),category=document.getElementById("category").value.trim(),brand=document.getElementById("brand").value.trim(),product=document.getElementById("product").value.trim(),quantity=Number(document.getElementById("quantity").value),expiry=document.getElementById("expiry").value;if(!code){toast("Ingresá o escaneá el código de barras.");return}if(!quantity||quantity<1||!expiry){toast("Revisá cantidad y fecha de vencimiento.");return}let p=findProduct(code);if(p){p.category=category;p.brand=brand;p.product=product}else{p={code,category,brand,product};catalog.push(p)}const r={id:"R-"+Date.now()+"-"+Math.random().toString(36).slice(2,7),code,category,brand,product,quantity,expiry,created:todayISO(),status:"ACTIVO",retiredAt:"",retireReason:""};records.unshift(r);saveData();renderRecords();renderCatalog();toast("Vencimiento guardado correctamente.");clearForm()});
+function setFilter(f){filter=f;["avencer","vencidos","todos"].forEach(x=>document.getElementById("tab-"+x).classList.toggle("active",x===f));renderRecords()}
+function stateBadge(days){if(days<0)return["red",`VENCIDO hace ${Math.abs(days)} día(s)`];if(days===0)return["red","VENCE HOY"];if(days<=20)return["yellow",`Vence en ${days} día(s)`];return["green",`Vence en ${days} día(s)`]}
+function renderRecords(){const c=document.getElementById("records-container");const q=(document.getElementById("search")?.value||"").trim().toLowerCase();let list=records.filter(r=>r.status!=="RETIRADO");if(filter==="vencidos")list=list.filter(r=>daysLeft(r.expiry)<=0);else if(filter==="avencer")list=list.filter(r=>daysLeft(r.expiry)>=1&&daysLeft(r.expiry)<=20);if(q)list=list.filter(r=>[r.code,r.product,r.brand,r.category].some(v=>String(v||"").toLowerCase().includes(q)));if(!list.length){c.innerHTML=`<div class="card empty">${q?"No se encontraron artículos con esa búsqueda.":filter==="avencer"?"No hay productos que venzan dentro de los próximos 20 días.":filter==="vencidos"?"No hay productos vencidos.":"No hay vencimientos registrados."}</div>`;return}c.innerHTML=list.map(r=>{const d=daysLeft(r.expiry),b=stateBadge(d);return `<article class="item"><div class="item-head"><div><h3>${esc(r.product)}</h3><p>Código de barras: <strong>${esc(r.code)}</strong></p><p>Categoría: ${esc(r.category)} · Marca: ${esc(r.brand)}</p><p>Cantidad: <strong>${esc(r.quantity)}</strong> · Vencimiento: <strong>${esc(r.expiry)}</strong></p><span class="badge ${b[0]}">${b[1]}</span></div></div><div class="actions"><button class="btn secondary" onclick="editRecord('${esc(r.id)}')">Editar</button><button class="btn danger" onclick="retireRecord('${esc(r.id)}')">Retirar</button></div></article>`}).join("")}
+function editRecord(id){const r=records.find(x=>x.id===id);if(!r)return;showView("scan",document.querySelector('nav button[data-view="scan"]'));document.getElementById("barcode").value=r.code;document.getElementById("category").value=r.category;document.getElementById("brand").value=r.brand;document.getElementById("product").value=r.product;document.getElementById("quantity").value=r.quantity;document.getElementById("expiry").value=r.expiry;records=records.filter(x=>x.id!==id);saveData();toast("Editá los datos y guardá para confirmar el registro.");}
+function retireRecord(id){const r=records.find(x=>x.id===id);if(!r)return;const reason=prompt("Motivo del retiro (por ejemplo: vendido, vencido, merma):","Retirado");if(reason===null)return;r.status="RETIRADO";r.retiredAt=todayISO();r.retireReason=reason.trim()||"Sin especificar";history.unshift({...r});saveData();renderRecords();toast("Producto retirado y guardado en el historial.")}
+function renderCatalog(){const c=document.getElementById("catalog-container"),q=(document.getElementById("catalog-search")?.value||"").trim().toLowerCase();const list=catalog.filter(p=>[p.code,p.product,p.brand,p.category].some(v=>String(v||"").toLowerCase().includes(q)));if(!list.length){c.innerHTML='<div class="empty">El catálogo está vacío o no hay coincidencias.</div>';return}const groups={};list.forEach(p=>(groups[p.category||"Sin categoría"]??=[]).push(p));c.innerHTML=Object.keys(groups).sort().map(k=>`<details class="catalog-group" open><summary>${esc(k)} (${groups[k].length})</summary>${groups[k].map(p=>`<div class="catalog-row"><strong>${esc(p.product)}</strong><p>Marca: ${esc(p.brand||"—")} · Código: ${esc(p.code)}</p><div class="actions"><button class="btn secondary" onclick="useCatalogProduct('${esc(p.code)}')">Usar producto</button></div></div>`).join("")}</details>`).join("")}
+function useCatalogProduct(code){const p=findProduct(code);if(!p)return;showView("scan",document.querySelector('nav button[data-view="scan"]'));document.getElementById("barcode").value=p.code;document.getElementById("category").value=p.category;document.getElementById("brand").value=p.brand;document.getElementById("product").value=p.product;document.getElementById("lookup-status").textContent="Producto del catálogo seleccionado. Agregá cantidad y vencimiento."}
+function renderHistory(){const c=document.getElementById("history-container");if(!history.length){c.innerHTML='<div class="empty">Todavía no hay productos retirados.</div>';return}c.innerHTML=history.map(r=>`<article class="item"><h3>${esc(r.product)}</h3><p>Código: ${esc(r.code)} · Cantidad: ${esc(r.quantity)}</p><p>Vencimiento: ${esc(r.expiry)} · Retirado: ${esc(r.retiredAt)}</p><p>Motivo: ${esc(r.retireReason)}</p><div class="actions"><button class="btn secondary" onclick="restoreRecord('${esc(r.id)}')">Restaurar al control</button></div></article>`).join("")}
+function restoreRecord(id){const h=history.find(x=>x.id===id);if(!h)return;const r={...h,status:"ACTIVO",retiredAt:"",retireReason:""};records.unshift(r);history=history.filter(x=>x.id!==id);saveData();renderHistory();toast("Registro restaurado al control activo.")}
+function exportData(){const blob=new Blob([JSON.stringify({format:"control-vencimientos-v2",records,catalog,history,exportedAt:new Date().toISOString()},null,2)],{type:"application/json"});const url=URL.createObjectURL(blob);const a=document.createElement("a");a.href=url;a.download="respaldo-control-vencimientos.json";a.click();URL.revokeObjectURL(url);toast("Respaldo preparado para guardar.")}
+function importData(){const f=document.getElementById("import-file").files[0];if(!f){toast("Seleccioná primero un archivo JSON.");return}const reader=new FileReader();reader.onload=()=>{try{const d=JSON.parse(reader.result);if(!Array.isArray(d.records)||!Array.isArray(d.catalog))throw Error("Formato");if(!confirm("Esto reemplazará los datos actuales de esta versión. ¿Continuar?"))return;records=d.records;catalog=d.catalog;history=Array.isArray(d.history)?d.history:[];saveData();renderRecords();renderCatalog();renderHistory();updateStats();toast("Respaldo importado correctamente.")}catch(e){toast("El archivo no parece ser un respaldo válido.")}};reader.readAsText(f)}
+function updateStats(){document.getElementById("stats").textContent=`Artículos en catálogo: ${catalog.length} · Vencimientos activos: ${records.filter(r=>r.status!=="RETIRADO").length} · Historial: ${history.length}`}
+loadData();updateLists();renderRecords();renderCatalog();renderHistory();updateStats();
+</script>
+</body>
+</html>
